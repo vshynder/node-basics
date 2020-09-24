@@ -1,0 +1,29 @@
+{
+  "name": "node_basics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index",
+    "dev": "nodemon index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vshynder/node-basics.git"
+  },
+  "keywords": [
+    "node",
+    "basics",
+    "nodejs"
+  ],
+  "author": "Vladyslav Shynder <shynderv@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vshynder/node-basics/issues"
+  },
+  "homepage": "https://github.com/vshynder/node-basics#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
