@@ -2,9 +2,7 @@ const { promises: fsPromises } = require("fs");
 const path = require("path");
 
 // Раскомментируй и запиши значение
-const contactsPath = `${path.dirname("./db/contacts.json")}/${path.basename(
-  "./db/contacts.json"
-)}`;
+const contactsPath = path.join(__dirname, "./db/contacts.json");
 // TODO: задокументировать каждую функцию
 async function listContacts() {
   const dataJson = await fsPromises.readFile(contactsPath, "utf-8");
