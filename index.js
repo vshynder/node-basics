@@ -6,7 +6,7 @@ const contacts = require("./contacts");
 function invokeAction({ action, id, name, email, phone }) {
   switch (action) {
     case "list":
-      contacts.listContacts().then((c) => console.log(c));
+      contacts.listContacts().then((c) => console.table(c));
       break;
 
     case "get":
