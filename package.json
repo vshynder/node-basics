@@ -25,5 +25,8 @@
   "homepage": "https://github.com/vshynder/node-basics#readme",
   "devDependencies": {
     "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "yargs": "^16.0.3"
   }
 }
