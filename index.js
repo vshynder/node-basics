@@ -1,11 +1,28 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cors = require("cors");
 const Joi = require("joi");
+require("dotenv").config();
 
 const app = express();
 
 const PORT = process.env.PORT || 3000;
+const CONNECT_DB = process.env.DB_CONNECTION_STRING || "";
+
+mongoose
+  .connect(CONNECT_DB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+  })
+  .then(() => {
+    console.log("Database connection successful");
+  })
+  .catch((error) => {
+    console.log(error);
+    process.exit(1);
+  });
 
 const {
   listContacts,
@@ -14,7 +31,6 @@ const {
   removeContact,
   updateContact,
 } = require("./contacts");
-const { required } = require("yargs");
 
 app.use(morgan("dev"));
 app.use(cors());
@@ -40,20 +56,21 @@ app.get("/api/contacts/:contactId", async (req, res) => {
     return res.json({ contact });
   }
 
-  res.status(404);
-  res.json({ message: "Not found" });
+  res.status(404).json({ message: "no such contact" });
 });
 
 const contactScheme = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
+  phone: Joi.string(),
 });
 
 const updateScheme = Joi.object({
   name: Joi.string(),
   email: Joi.string().email(),
   password: Joi.string(),
+  phone: Joi.string(),
 });
 
 app.post("/api/contacts", async (req, res) => {
@@ -63,21 +80,18 @@ app.post("/api/contacts", async (req, res) => {
     return res.json({ message: "Missing required field" });
   }
 
-  const { name, email, phone } = req.body;
-  const createdContact = await addContact(name, email, phone);
+  const { name, email, phone, password } = req.body;
+  const createdContact = await addContact(name, email, phone, password);
 
   res.json({ createdContact });
 });
 
 app.delete("/api/contacts/:contactId", async (req, res) => {
   const { contactId } = req.params;
-  const message = await removeContact(Number.parseInt(contactId));
-  if (message === "not found") {
-    res.status(404);
-    res.json({ message: "Not found" });
-  }
+  console.log(contactId);
+  const message = await removeContact(contactId);
 
-  res.json({ message: "Contact deleted" });
+  res.json(message);
 });
 
 app.patch("/api/contacts/:contactId", async (req, res) => {
@@ -89,11 +103,7 @@ app.patch("/api/contacts/:contactId", async (req, res) => {
 
   const { contactId } = req.params;
   const ans = await updateContact(contactId, req.body);
-  if (ans) {
-    return res.json({ contact: ans });
-  }
-  res.status(404);
-  res.json({ message: "Not found" });
+  return res.json(ans);
 });
 
 app.listen(PORT, () => console.log(`Server started on prot ${PORT}`));
