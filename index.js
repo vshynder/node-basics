@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 
 const contactRouter = require("./api/contacts/contacts.router");
+const userRouter = require("./api/users/users.router");
 
 class Server {
   constructor() {
@@ -30,6 +31,7 @@ class Server {
 
   initRoutes() {
     this.server.use("/api/contacts", contactRouter);
+    this.server.use("/auth", userRouter);
   }
 
   async connectToDb() {
