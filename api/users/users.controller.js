@@ -20,7 +20,7 @@ class UserController {
   }
 
   async login({ email, password }) {
-    const foundUser = await await UserModel.findOne({ email }).select("-__v");
+    const foundUser = await UserModel.findOne({ email }).select("-__v");
     if (!foundUser) {
       return { message: "Email or password is wrong" };
     }
@@ -34,6 +34,7 @@ class UserController {
         JSON.stringify(foundUser),
         process.env.JWT_SECRET
       );
+      await UserModel.findByIdAndUpdate(foundUser._id, { token });
       return {
         token,
         user,
@@ -43,6 +44,31 @@ class UserController {
 
   async validate(schema, user) {
     return await schema.validate(user);
+  }
+
+  async checkToken(req, res, next) {
+    try {
+      const token = req.headers["authorization"].split(" ")[1];
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      const { _id } = decodedToken;
+      const user = await UserModel.findById(_id);
+      if (!user) throw new Error();
+      req.user = user;
+      next();
+    } catch (error) {
+      res.status(401).json({ message: "Not authorized" });
+    }
+  }
+
+  async logout(req, res) {
+    try {
+      const user = await UserModel.findById(req.user._id);
+      if (!user) throw new Error();
+      await UserModel.findByIdAndUpdate(req.user._id, { token: null });
+      return res.status(204).json({ message: "Logged out" });
+    } catch (error) {
+      res.status(401).json({ message: "Not authorized" });
+    }
   }
 }
 

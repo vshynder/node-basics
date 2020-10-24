@@ -36,4 +36,17 @@ router.post("/login", async (req, res) => {
   res.status(401).json(message);
 });
 
+router.post("/logout", controller.checkToken, controller.logout);
+router.get("/users/current", controller.checkToken, (req, res) => {
+  if (req.user) {
+    res.status(200).json({
+      user: {
+        email: req.user.email,
+        subscription: req.user.subscription,
+      },
+    });
+  }
+  res.status(401).json({ message: "Not authorized" });
+});
+
 module.exports = router;
