@@ -2,12 +2,14 @@ const { Router } = require("express");
 const Joi = require("joi");
 
 const controller = require("./contacts.controller");
+const userController = require("../users/users.controller");
 
 router = Router();
 
-router.get("/test", (req, res) => {
+router.get("/test", userController.checkToken, (req, res) => {
   res.json({
     message: "Hello 🙌🏻",
+    user: req.user,
   });
 });
 
