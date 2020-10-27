@@ -1,99 +1,65 @@
 const express = require("express");
+const mongoose = require("mongoose");
+require("dotenv").config();
+
 const morgan = require("morgan");
 const cors = require("cors");
-const Joi = require("joi");
 
-const app = express();
+const contactRouter = require("./api/contacts/contacts.router");
 
-const PORT = process.env.PORT || 3000;
-
-const {
-  listContacts,
-  getContactById,
-  addContact,
-  removeContact,
-  updateContact,
-} = require("./contacts");
-const { required } = require("yargs");
-
-app.use(morgan("dev"));
-app.use(cors());
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.json({
-    message: "Hello 🙌🏻",
-  });
-});
-
-app.get("/api/contacts", async (req, res) => {
-  const contacts = await listContacts();
-  res.json({
-    contacts,
-  });
-});
-
-app.get("/api/contacts/:contactId", async (req, res) => {
-  const { contactId } = req.params;
-  const contact = await getContactById(contactId);
-  if (contact) {
-    return res.json({ contact });
+class Server {
+  constructor() {
+    this.server = express();
+    this.PORT = process.env.PORT || 3000;
+    this.CONNECT_DB_STRING = process.env.DB_CONNECTION_STRING || "";
   }
 
-  res.status(404);
-  res.json({ message: "Not found" });
-});
-
-const contactScheme = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
-});
-
-const updateScheme = Joi.object({
-  name: Joi.string(),
-  email: Joi.string().email(),
-  password: Joi.string(),
-});
-
-app.post("/api/contacts", async (req, res) => {
-  const { error } = contactScheme.validate(req.body);
-  if (error) {
-    res.status(400);
-    return res.json({ message: "Missing required field" });
+  async init() {
+    this.initMidlewares();
+    this.initRoutes();
+    await this.connectToDb();
+    this.startListening();
   }
 
-  const { name, email, phone } = req.body;
-  const createdContact = await addContact(name, email, phone);
-
-  res.json({ createdContact });
-});
-
-app.delete("/api/contacts/:contactId", async (req, res) => {
-  const { contactId } = req.params;
-  const message = await removeContact(Number.parseInt(contactId));
-  if (message === "not found") {
-    res.status(404);
-    res.json({ message: "Not found" });
+  initMidlewares() {
+    this.server.use(morgan("dev"));
+    this.server.use(cors());
+    this.server.use(express.json());
+    this.server.use(this.handleErrors);
   }
 
-  res.json({ message: "Contact deleted" });
-});
-
-app.patch("/api/contacts/:contactId", async (req, res) => {
-  const { error } = updateScheme.validate(req.body);
-  if (error) {
-    res.status(400);
-    return res.json({ message: "Missing fields" });
+  initRoutes() {
+    this.server.use("/api/contacts", contactRouter);
   }
 
-  const { contactId } = req.params;
-  const ans = await updateContact(contactId, req.body);
-  if (ans) {
-    return res.json({ contact: ans });
+  async connectToDb() {
+    mongoose
+      .connect(this.CONNECT_DB_STRING, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        useFindAndModify: false,
+      })
+      .then(() => {
+        console.log("Database connection successful");
+      })
+      .catch((error) => {
+        console.log(error);
+        process.exit(1);
+      });
   }
-  res.status(404);
-  res.json({ message: "Not found" });
-});
 
-app.listen(PORT, () => console.log(`Server started on prot ${PORT}`));
+  startListening() {
+    this.server.listen(this.PORT, () => {
+      console.log(`Server started on port ${this.PORT}`);
+    });
+  }
+
+  handleErrors(error, req, res, next) {
+    if (error) {
+      res.status(error.status);
+      res.json({ message: error.message });
+    }
+  }
+}
+
+module.exports = new Server();
