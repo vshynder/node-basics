@@ -9,6 +9,10 @@ const userSchema = Schema({
     type: String,
     required: true,
   },
+  avatarUrl: {
+    type: String,
+    default: "localhost:3000/images/povar.jpg",
+  },
   subscription: {
     type: String,
     enum: ["free", "pro", "premium"],

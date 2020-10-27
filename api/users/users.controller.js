@@ -70,6 +70,17 @@ class UserController {
       res.status(401).json({ message: "Not authorized" });
     }
   }
+
+  async changeAvatar(req, res) {
+    try {
+      const user = await UserModel.findByIdAndUpdate(req.user._id, {
+        avatarUrl: req.file.path,
+      });
+      return user;
+    } catch (error) {
+      res.status(401).json({ message: "Not authorized" });
+    }
+  }
 }
 
 module.exports = new UserController();
