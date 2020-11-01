@@ -18,6 +18,10 @@ const userSchema = Schema({
     enum: ["free", "pro", "premium"],
     default: "free",
   },
+  verificationToken: {
+    type: String,
+    default: null,
+  },
   token: String,
 });
 
